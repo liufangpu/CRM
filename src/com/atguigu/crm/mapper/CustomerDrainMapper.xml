@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.crm.mapper.CustomerDrainMapper">
+	<select id="getById" resultType="com.atguigu.crm.entity.CustomerDrain">
+		select cd.id,delay,drain_date,last_order_date,reason,status,c.name as "customer.name",
+		ct.name as "customer.manager.name"
+		from customer_drains cd
+		left join customers c
+		on cd.customer_id=c.id
+		left join contacts ct
+		on c.manager_id=ct.id
+		where cd.id=#{id}
+	</select>
+	<select id="getDelay" resultType="java.lang.String">
+		select delay from customer_drains where id=#{id}
+	</select>
+	
+	<update id="delay">
+		update customer_drains set delay=#{delay} where id=#{id}
+	
+	</update>
+	
+	<update id="confirm">
+		update  customer_drains set status='流失', drain_date=#{drainDate}, reason=#{reason} where id=#{id}
+		
+	</update>
+
+	<select id="getTotalElements" resultType="long">
+		select count(id) from customer_drains
+		
+	</select>
+	
+	<select id="getContent" resultType="com.atguigu.crm.entity.CustomerDrain">
+	select * from(
+		select rownum nu,cd.id,delay,drain_date,last_order_date,reason,status,c.name as "customer.name",ct.name as "customer.manager.name"
+		,customer_id from customer_drains cd
+		left join customers c
+		on cd.customer_id=c.id
+		left join contacts ct
+		on c.manager_id=ct.id
+		
+		)
+		where  <![CDATA[nu>=#{firstIndex} and nu<=#{endIndex}]]>
+	
+	</select>
+</mapper>

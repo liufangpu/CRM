@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.crm.mapper.SalesChanceMapper">
+	<sql id="queryCondition">
+		
+		<if test="custName!=null and custName!=''">
+			where cust_name like #{custName}
+		</if>
+		<if test="title != null and title != ''">
+			AND title LIKE #{title}
+		</if>
+		<if test="contact != null and contact != ''">
+			AND contact LIKE #{contact}
+		</if>
+	</sql>
+	
+	<select id="getContent2" resultType="com.atguigu.crm.entity.SalesChance">
+		SELECT *
+		FROM(
+			SELECT rownum rn, id, cust_name, title, contact, contact_tel, create_date
+			FROM sales_chances 
+			<include refid="queryCondition"/>
+		)
+		<![CDATA[
+		WHERE rn >= #{firstIndex} AND rn < #{endIndex}
+		]]>
+	</select>
+	
+	<select id="getTotalElements2" resultType="long">
+		select count(id) from 
+			sales_chances
+			<include refid="queryCondition"/>
+	</select>
+	
+	<update id="update" >
+		update  sales_chances set source=#{source},cust_name=#{custName},contact=#{contact},rate=#{rate},title=#{title},contact_tel=#{contactTel},description=#{description}
+		where id=#{id}
+		
+	</update>
+	
+	
+	<select id="getById" resultType="com.atguigu.crm.entity.SalesChance">
+		<!-- select *from sales_chances where id=#{id} -->
+		
+		SELECT c.id, contact, contact_tel, create_date, cust_name, description, rate, source, status, title, u.name AS "createBy.name", r.name AS "createBy.role.name",designee_id as "designee.id" 
+		
+		FROM sales_chances c
+		LEFT OUTER JOIN users u
+		ON c.created_user_id = u.id
+		LEFT OUTER JOIN roles r
+		ON u.role_id = r.id
+		WHERE c.id = #{id}
+	
+	</select>
+	
+	
+	
+	<delete id="delete">
+		delete from sales_chances where id=#{id}
+		
+	</delete>
+	
+	<insert id="save">
+		insert into sales_chances(id,contact,contact_tel,title,rate,cust_name,source,description,status,create_date,created_user_id)
+		values(sql_id.nextval,#{contact},
+		#{contactTel},#{title},#{rate},#{custName},
+		#{source},#{description},#{status},#{createDate},#{createBy.id})
+
+	</insert>
+
+	<!-- 查询当前页面的 content -->
+	<select id="getContent" resultType="com.atguigu.crm.entity.SalesChance">
+		SELECT *
+		FROM(
+		SELECT rownum rn, id, cust_name, title, contact, contact_tel, create_date
+		FROM sales_chances
+		
+		)
+		<![CDATA[
+		WHERE rn >= #{firstIndex} AND rn < #{endIndex}
+		]]>
+	</select>
+
+	<!-- 查询总的记录数 -->
+	<select id="getTotalElements" resultType="long">
+		SELECT count(id)
+		FROM sales_chances
+		
+	</select>
+
+</mapper>

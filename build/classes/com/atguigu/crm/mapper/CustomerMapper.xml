@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.crm.mapper.CustomerMapper">
+	<!-- ����sql -->
+	<sql id="queryCondition">
+		<if test="name != null and name !='' ">
+			and c.name Like #{name}
+		</if>
+		<if test="region !=null and region !='' ">
+			and region Like #{region}
+		</if>
+		<if test="state != null and state != ''">
+			AND state LIKE #{state}
+		</if>
+		<if test="level != null and level != ''">
+			AND customer_level LIKE #{level}
+		</if>
+	</sql>
+	<!-- <select id="getById" resultType="com.atguigu.crm.entity.Customer">
+		select id,no ,name from customers where id=#{id}
+	</select> -->
+	
+	<select id="getById" resultType="com.atguigu.crm.entity.Customer">
+		select id,manager_id as "manager.id",region,name,no,customer_level as "level",satify,credit,address,zip,tel,fax,websit,licence_no as "licenceNo",chief,bankroll,
+		   turnover,bank,bank_account as "bankAccount",local_Tax_No as "localTaxNo",national_Tax_No as "nationalTaxNo"
+		 from customers where id=#{id}
+		<!--  select * from customers where id=#{id} -->
+			
+	</select>
+	
+	<select id="getTotalElements" resultType="long">
+		select count(*) FROM  (
+		select c.id,no, c.name,c.region ,customer_level as "level",c.state ,o.name as "manager.name" 
+		 from customers c left outer join contacts o 
+		on c.manager_id = o.id where 1 = 1 
+		<include refid="queryCondition"/>
+		<if test="managerName != null and managerName != ''">
+			AND o.name LIKE #{managerName}
+		</if>)
+	</select>	
+	
+	<select id="getCustomerList" resultType="com.atguigu.crm.entity.Customer">
+	SELECT * FROM(
+	SELECT rownum rn, c.id,no, c.name,c.region ,customer_level as "level",c.state ,o.name as "manager.name"
+	FROM customers c 
+	left outer join
+	contacts o on 
+	c.manager_id = o.id
+	where 1 =1 
+	<include refid="queryCondition"/>
+	<if test="managerName != null and managerName != ''">
+			AND o.name LIKE #{managerName}
+	</if>
+	
+	)
+	<![CDATA[
+		WHERE rn >= #{startIndex} AND rn < #{endIndex}
+		]]>
+	</select>
+	
+	<select id="getRegionList" resultType="com.atguigu.crm.entity.Dict">
+		select id,item from dicts where type = #{type}
+	</select>
+	
+	<update id="selectCustomer">
+		update customers set state = #{state} where id=#{id}
+	</update>
+	
+	<!-- liu -->
+	<update id="update">
+		 update  customers set name=#{name},region=#{region},customer_level=#{level},state=#{state},manager_id=#{manager.id},
+		satify=#{satify},credit=#{credit},address=#{address},zip=#{zip},tel=#{tel},fax=#{fax},websit=#{websit},licence_no=#{licenceNo},chief=#{chief},bankroll=#{bankroll},
+		turnover=#{turnover},bank=#{bank},bank_account=#{bankAccount},local_tax_no=#{localTaxNo},national_tax_no=#{nationalTaxNo}
+		where id=#{id} 
+		
+	</update>
+	<select id="getModelList" resultType="java.lang.String">
+		SELECT item 
+		FROM dicts
+		WHERE
+		type = #{type}
+	</select>
+
+	<select id="getManagerList" resultType="com.atguigu.crm.entity.Contact">
+		SELECT c.id, c.name
+		FROM
+		contacts c
+		<!-- WHERE customer_id = #{id} -->
+	</select>
+
+	
+	
+	
+	 <select id="getContent" resultType="com.atguigu.crm.entity.Customer">
+		select * from (
+			select rownum rn,c.id,c.name,no,region,m.name as "manager.name",customer_level as "level",state
+			from customers c
+			left join contacts m
+			on c.manager_id=m.id
+		)
+		<![CDATA[
+			WHERE rn>=#{firstIndex} and rn <=#{endIndex}
+		]]>
+	
+	</select> 
+</mapper>
